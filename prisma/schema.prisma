@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "commonjs"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ticket{
+    id Int @id @default(autoincrement())
+    ticket_code String @unique
+    entry_date DateTime
+    exit_date DateTime?
+    is_auxiliary_ticket Boolean @default(false)
+    pagos pago[]
+}
+
+model pago{
+    id Int @id @default(autoincrement())
+    amount Float
+    payment_date DateTime
+    ticket_id Int
+    ticket ticket @relation(fields: [ticket_id], references: [id])
+}
+
+model bancard_log{
+    id          Int      @id @default(autoincrement())
+    tipo_operacion String
+    request_json   String?
+    response_json  String?
+    status         String
+    http_status_code Int?
+    monto          Decimal? @db.Decimal(12, 3)
+    fecha          DateTime @default(now())
+}
