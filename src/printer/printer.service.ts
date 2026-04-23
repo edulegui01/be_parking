@@ -1,16 +1,12 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
-import {
-  ThermalPrinter,
-  PrinterTypes,
-  CharacterSet,
-  BreakLine,
-} from 'node-thermal-printer';
+import { ThermalPrinter, PrinterTypes, CharacterSet, BreakLine } from 'node-thermal-printer';
 import { XMLParser } from 'fast-xml-parser';
 import emisorConfig from 'src/config/emisor.config';
 import { TicketResponseGenerateInvoice } from 'src/ticket/dto/ticket_response_generate_invoice';
 import * as os from 'os';
 import * as path from 'path';
+import * as fs from 'fs';
 import { execFileSync } from 'child_process';
 
 @Injectable()
@@ -40,20 +36,17 @@ export class PrinterService {
     const tmpFile = path.join(os.tmpdir(), 'thermal_print.bin');
     const scriptPath = path.join(process.cwd(), 'scripts', 'raw-print.ps1');
     await printer.execute();
+
+    // wscript.exe es una app gráfica de Windows: no crea ventana de consola
+    const psArgs = `-NonInteractive -ExecutionPolicy Bypass -File "${scriptPath}" -FilePath "${tmpFile}" -PrinterName "${printerName}"`;
+    const vbsCmd = psArgs.replace(/"/g, '""');
+    const vbsContent = `CreateObject("WScript.Shell").Run "powershell ${vbsCmd}", 0, True`;
+    const vbsFile = path.join(os.tmpdir(), 'lacosta_print.vbs');
+    fs.writeFileSync(vbsFile, vbsContent, 'ascii');
+
     this.logger.log(`Ejecutando impresión en: ${printerName}`);
-    const output = execFileSync(
-      'powershell.exe',
-      [
-        '-NoProfile',
-        '-NonInteractive',
-        '-ExecutionPolicy', 'Bypass',
-        '-File', scriptPath,
-        '-FilePath', tmpFile,
-        '-PrinterName', printerName,
-      ],
-      { windowsHide: true },
-    ).toString();
-    this.logger.log(output.trim());
+    execFileSync('wscript.exe', [vbsFile]);
+    this.logger.log('Impresión completada');
   }
 
   async printEntryTicket(params: {
