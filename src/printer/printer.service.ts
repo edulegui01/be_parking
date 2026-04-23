@@ -11,7 +11,7 @@ import emisorConfig from 'src/config/emisor.config';
 import { TicketResponseGenerateInvoice } from 'src/ticket/dto/ticket_response_generate_invoice';
 import * as os from 'os';
 import * as path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 @Injectable()
 export class PrinterService {
@@ -40,9 +40,19 @@ export class PrinterService {
     const tmpFile = path.join(os.tmpdir(), 'thermal_print.bin');
     const scriptPath = path.join(process.cwd(), 'scripts', 'raw-print.ps1');
     await printer.execute();
-    const cmd = `powershell -NonInteractive -ExecutionPolicy Bypass -File "${scriptPath}" -FilePath "${tmpFile}" -PrinterName "${printerName}"`;
     this.logger.log(`Ejecutando impresión en: ${printerName}`);
-    const output = execSync(cmd, { windowsHide: true }).toString();
+    const output = execFileSync(
+      'powershell.exe',
+      [
+        '-NoProfile',
+        '-NonInteractive',
+        '-ExecutionPolicy', 'Bypass',
+        '-File', scriptPath,
+        '-FilePath', tmpFile,
+        '-PrinterName', printerName,
+      ],
+      { windowsHide: true },
+    ).toString();
     this.logger.log(output.trim());
   }
 
