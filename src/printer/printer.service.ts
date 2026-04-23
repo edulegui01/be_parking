@@ -42,7 +42,7 @@ export class PrinterService {
     await printer.execute();
     const cmd = `powershell -NonInteractive -ExecutionPolicy Bypass -File "${scriptPath}" -FilePath "${tmpFile}" -PrinterName "${printerName}"`;
     this.logger.log(`Ejecutando impresión en: ${printerName}`);
-    const output = execSync(cmd).toString();
+    const output = execSync(cmd, { windowsHide: true }).toString();
     this.logger.log(output.trim());
   }
 
