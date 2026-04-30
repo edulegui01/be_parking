@@ -8,19 +8,8 @@ import { randomUUID } from 'crypto';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const allowedOrigins = (
-    process.env.CORS_ORIGIN ?? 'http://localhost:5173'
-  ).split(',');
   app.enableCors({
-    origin: (origin, callback) => {
-      console.log('CORS origin recibido:', origin);
-      console.log('Allowed origins:', allowedOrigins);
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
   });
