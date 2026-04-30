@@ -25,19 +25,19 @@ export class PagoService {
       where: { ticket_code: data.ticket_code },
     });
 
-    // const facturaNro = Date.now() % 1000000;
-    // this.logger.log(`Iniciando pago tarjeta para ticket ${data.ticket_code}`);
-    // const { bin, nsu } = await this.bancardService.iniciarPagoTarjeta({
-    //   facturaNro,
-    //   monto: data.monto,
-    // });
+    const facturaNro = Date.now() % 1000000;
+    this.logger.log(`Iniciando pago tarjeta para ticket ${data.ticket_code}`);
+    const { bin, nsu } = await this.bancardService.iniciarPagoTarjeta({
+      facturaNro,
+      monto: data.monto,
+    });
 
-    // this.logger.log(`Confirmando pago tarjeta para ticket ${data.ticket_code}`);
-    // await this.bancardService.confirmarPagoTarjeta({
-    //   bin,
-    //   nsu,
-    //   monto: data.monto,
-    // });
+    this.logger.log(`Confirmando pago tarjeta para ticket ${data.ticket_code}`);
+    await this.bancardService.confirmarPagoTarjeta({
+      bin,
+      nsu,
+      monto: data.monto,
+    });
 
     if (ticket) {
       await this.prisma.pago.create({
@@ -76,12 +76,12 @@ export class PagoService {
       where: { ticket_code: data.ticket_code },
     });
 
-    // const facturaNro = Date.now() % 1000000;
-    // this.logger.log(`Iniciando pago QR para ticket ${data.ticket_code}`);
-    // await this.bancardService.pagoQr({
-    //   facturaNro,
-    //   monto: data.monto,
-    // });
+    const facturaNro = Date.now() % 1000000;
+    this.logger.log(`Iniciando pago QR para ticket ${data.ticket_code}`);
+    await this.bancardService.pagoQr({
+      facturaNro,
+      monto: data.monto,
+    });
 
     if (ticket) {
       await this.prisma.pago.create({
