@@ -17,12 +17,33 @@ import {
 @Injectable()
 export class BancardService {
   private readonly logger = new Logger(BancardService.name);
-  private readonly baseUrl: string;
+  private readonly fallbackUrl: string;
+  private readonly posMap: Map<string, string>;
 
   constructor(private readonly prisma: PrismaService) {
     const ip = process.env.BANCARD_IP;
     const port = process.env.BANCARD_PORT;
-    this.baseUrl = `http://${ip}:${port}`;
+    this.fallbackUrl = `http://${ip}:${port}`;
+    this.posMap = this.parsePosMap(process.env.BANCARD_POS_MAP);
+  }
+
+  private parsePosMap(raw?: string): Map<string, string> {
+    const map = new Map<string, string>();
+    if (!raw) return map;
+    for (const entry of raw.split(',')) {
+      const [frontendIp, posIp, posPort] = entry.trim().split(':');
+      if (frontendIp && posIp && posPort) {
+        map.set(frontendIp, `http://${posIp}:${posPort}`);
+      }
+    }
+    return map;
+  }
+
+  private getPosUrl(clientIp?: string): string {
+    if (clientIp && this.posMap.has(clientIp)) {
+      return this.posMap.get(clientIp)!;
+    }
+    return this.fallbackUrl;
   }
 
   private async saveLog(
@@ -46,8 +67,8 @@ export class BancardService {
     });
   }
 
-  async verificarConexion(): Promise<{ eco: number }> {
-    const url = `${this.baseUrl}/pos/eco`;
+  async verificarConexion(clientIp?: string): Promise<{ eco: number }> {
+    const url = `${this.getPosUrl(clientIp)}/pos/eco`;
 
     try {
       const response = await fetch(url, {
@@ -74,8 +95,9 @@ export class BancardService {
 
   async iniciarPagoTarjeta(
     data: IniciarPagoTarjetaRequestDto,
+    clientIp?: string,
   ): Promise<IniciarPagoTarjetaResponseDto> {
-    const url = `${this.baseUrl}/pos/venta-ux`;
+    const url = `${this.getPosUrl(clientIp)}/pos/venta-ux`;
     const requestJson = JSON.stringify(data);
 
     try {
@@ -124,8 +146,9 @@ export class BancardService {
 
   async confirmarPagoTarjeta(
     data: ConfirmarPagoTarjetaRequestDto,
+    clientIp?: string,
   ): Promise<VentaTarjetaResponseDto> {
-    const url = `${this.baseUrl}/pos/descuento`;
+    const url = `${this.getPosUrl(clientIp)}/pos/descuento`;
     const requestJson = JSON.stringify(data);
 
     try {
@@ -172,8 +195,8 @@ export class BancardService {
     }
   }
 
-  async pagoQr(data: PagoQrRequestDto): Promise<VentaQrResponseDto> {
-    const url = `${this.baseUrl}/pos/venta-qr`;
+  async pagoQr(data: PagoQrRequestDto, clientIp?: string): Promise<VentaQrResponseDto> {
+    const url = `${this.getPosUrl(clientIp)}/pos/venta-qr`;
     const requestJson = JSON.stringify(data);
 
     try {

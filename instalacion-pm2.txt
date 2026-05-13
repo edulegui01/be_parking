@@ -1,0 +1,148 @@
+========================================================
+  GUIA DE INSTALACION - be_lacosta en PM2 (Windows)
+========================================================
+
+REQUISITOS PREVIOS
+------------------
+- Node.js instalado (v18 o superior recomendado)
+  Descargar de: https://nodejs.org
+- PostgreSQL instalado y corriendo
+- Git instalado
+- PM2 instalado globalmente
+
+Instalar PM2 (abrir PowerShell como Administrador):
+  npm install -g pm2
+  npm install -g pm2-windows-startup
+
+
+PASOS DE INSTALACION
+--------------------
+
+1. POSICIONARSE EN LA CARPETA DEL PROYECTO
+   Abrir PowerShell y ejecutar:
+   cd C:\Users\edu_c\Documents\eduardo-segel\sco-lacosta\lacosta\be_lacosta
+
+
+2. INSTALAR DEPENDENCIAS
+   npm install
+
+
+3. CONFIGURAR VARIABLES DE ENTORNO
+   Copiar el archivo de ejemplo:
+   copy .env.example .env
+
+   Abrir el archivo .env con un editor de texto y completar los valores:
+     DATABASE_URL=          -> URL de conexion a PostgreSQL
+                              Ejemplo: postgresql://usuario:password@localhost:5432/lacosta
+     EXTERNAL_API_URL=      -> URL de la API externa
+     EXTERNAL_API_USERNAME= -> Usuario de la API externa
+     EXTERNAL_API_PASSWORD= -> Password de la API externa
+     BANCARD_IP=            -> IP del dispositivo Bancard
+     BANCARD_PORT=          -> Puerto del dispositivo Bancard
+     BARCODE_CHANNEL_ID=    -> ID de canal del lector de barcode
+     BARCODE_API_KEY=       -> API Key del lector de barcode
+     BARCODE_MACHINE_IP=    -> IP de la maquina del lector de barcode
+     EMISOR_RUC=            -> RUC del emisor
+     EMISOR_RAZON_SOCIAL=   -> Razon social del emisor
+     EMISOR_DIRECCION=      -> Direccion del emisor
+     EMISOR_TELEFONO=       -> Telefono del emisor
+     CORS_ORIGIN=           -> Origen permitido para CORS (ej: http://localhost:3000)
+     PRINTER_NAME=          -> Nombre exacto de la impresora termica (como aparece en Windows)
+
+
+4. EJECUTAR MIGRACIONES DE BASE DE DATOS
+   npx prisma migrate deploy
+
+   Si es la primera vez y no hay migraciones previas aplicadas:
+   npx prisma migrate dev
+
+
+5. GENERAR EL CLIENTE PRISMA
+   npx prisma generate
+
+
+6. COMPILAR EL PROYECTO (BUILD)
+   npm run build
+
+   Esto genera la carpeta dist\ con el codigo compilado.
+   El archivo de entrada es: dist\src\main.js
+
+
+7. INICIAR CON PM2
+   pm2 start ecosystem.config.js
+
+   La app se registrara en PM2 con el nombre 'be_lacosta'.
+
+
+8. CONFIGURAR INICIO AUTOMATICO CON WINDOWS
+   (Ejecutar PowerShell como Administrador)
+
+   pm2-startup install
+   pm2 save
+
+   Esto hace que PM2 y la app arranquen automaticamente al iniciar Windows.
+
+
+COMANDOS UTILES DE PM2
+-----------------------
+Ver estado de la app:
+  pm2 status
+
+Ver logs en tiempo real:
+  pm2 logs be_lacosta
+
+Reiniciar la app:
+  pm2 restart be_lacosta
+
+Detener la app:
+  pm2 stop be_lacosta
+
+Eliminar la app de PM2:
+  pm2 delete be_lacosta
+
+Ver lista de todas las apps:
+  pm2 list
+
+
+ACTUALIZACION DEL PROYECTO (deploy)
+-------------------------------------
+1. Bajar los cambios:
+   git pull
+
+2. Instalar nuevas dependencias (si las hay):
+   npm install
+
+3. Aplicar nuevas migraciones (si las hay):
+   npx prisma migrate deploy
+
+4. Recompilar:
+   npm run build
+
+5. Reiniciar PM2:
+   pm2 restart be_lacosta
+
+
+CONFIGURACION DE PM2 (ecosystem.config.js)
+-------------------------------------------
+- Nombre de la app : be_lacosta
+- Script de entrada: dist\src\main.js
+- Directorio       : C:\Users\edu_c\Documents\eduardo-segel\sco-lacosta\lacosta\be_lacosta
+- Instancias       : 1
+- Autorestart      : si
+- Watch            : no
+- Max memoria      : 300 MB
+- Variables de env : leidas desde .env
+
+
+NOTAS IMPORTANTES EN WINDOWS
+------------------------------
+- Siempre abrir PowerShell como Administrador para los comandos de pm2 startup.
+- Si hay errores de politica de ejecucion de scripts, ejecutar:
+    Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+- El nombre de la impresora en PRINTER_NAME debe coincidir exactamente
+  con el nombre que aparece en "Dispositivos e impresoras" de Windows.
+- PM2 corre como proceso de fondo; los logs se guardan en:
+    C:\Users\edu_c\.pm2\logs\
+
+
+========================================================

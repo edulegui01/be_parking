@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Ip } from '@nestjs/common';
 import { BancardService } from './bancard.service';
 import {
   IniciarPagoTarjetaRequestDto,
@@ -14,26 +14,31 @@ export class BancardController {
   constructor(private readonly bancardService: BancardService) {}
 
   @Post('verificar-conexion')
-  async verificarConexion(): Promise<{ eco: number }> {
-    return this.bancardService.verificarConexion();
+  async verificarConexion(@Ip() clientIp: string): Promise<{ eco: number }> {
+    return this.bancardService.verificarConexion(clientIp);
   }
 
   @Post('iniciar-pago-tarjeta')
   async iniciarPagoTarjeta(
     @Body() data: IniciarPagoTarjetaRequestDto,
+    @Ip() clientIp: string,
   ): Promise<IniciarPagoTarjetaResponseDto> {
-    return this.bancardService.iniciarPagoTarjeta(data);
+    return this.bancardService.iniciarPagoTarjeta(data, clientIp);
   }
 
   @Post('confirmar-pago-tarjeta')
   async confirmarPagoTarjeta(
     @Body() data: ConfirmarPagoTarjetaRequestDto,
+    @Ip() clientIp: string,
   ): Promise<VentaTarjetaResponseDto> {
-    return this.bancardService.confirmarPagoTarjeta(data);
+    return this.bancardService.confirmarPagoTarjeta(data, clientIp);
   }
 
   @Post('pago-qr')
-  async pagoQr(@Body() data: PagoQrRequestDto): Promise<VentaQrResponseDto> {
-    return this.bancardService.pagoQr(data);
+  async pagoQr(
+    @Body() data: PagoQrRequestDto,
+    @Ip() clientIp: string,
+  ): Promise<VentaQrResponseDto> {
+    return this.bancardService.pagoQr(data, clientIp);
   }
 }

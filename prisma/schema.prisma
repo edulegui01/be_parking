@@ -32,6 +32,13 @@ model pago{
     ticket ticket @relation(fields: [ticket_id], references: [id])
 }
 
+model nfc_tag {
+    id       Int     @id @default(autoincrement())
+    nfc_code String  @unique
+    enable   Boolean @default(true)
+    owner    String
+}
+
 model bancard_log{
     id          Int      @id @default(autoincrement())
     tipo_operacion String

@@ -7,6 +7,7 @@ import { PrismaService } from './prisma/prisma.service';
 import { BancardModule } from './bancard/bancard.module';
 import { BarcodeModule } from './barcode/barcode.module';
 import { PagoModule } from './pago/pago.module';
+import { NfcTagModule } from './nfc-tag/nfc-tag.module';
 import externalApiConfig from './config/external-api.config';
 import emisorConfig from './config/emisor.config';
 
@@ -20,6 +21,7 @@ import emisorConfig from './config/emisor.config';
     BancardModule,
     BarcodeModule,
     PagoModule,
+    NfcTagModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
