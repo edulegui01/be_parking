@@ -1,10 +1,15 @@
-import { Body, Controller, Delete, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { NfcTagService } from './nfc-tag.service';
 import { CreateNfcTagDto, UpdateNfcTagDto } from './dto/nfc-tag.dto';
 
 @Controller('nfc-tag')
 export class NfcTagController {
   constructor(private readonly nfcTagService: NfcTagService) {}
+
+  @Get('exists/:code')
+  existsByCode(@Param('code') code: string) {
+    return this.nfcTagService.existsByCode(code);
+  }
 
   @Post()
   create(@Body() data: CreateNfcTagDto) {

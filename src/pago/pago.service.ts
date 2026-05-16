@@ -83,6 +83,7 @@ export class PagoService {
       ruc: data.ruc,
       a_nombre_de: data.a_nombre_de,
       correo_electronico: data.correo_electronico,
+      hostname: data.hostname,
     });
 
     if (invoice.data) {
@@ -128,6 +129,7 @@ export class PagoService {
       ruc: data.ruc,
       a_nombre_de: data.a_nombre_de,
       correo_electronico: data.correo_electronico,
+      hostname: data.hostname,
     });
 
     if (invoice.data) {

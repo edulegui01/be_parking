@@ -24,4 +24,8 @@ export class TicketRequestGenerateInvoice {
   @IsString()
   @IsOptional()
   correo_electronico?: string;
+
+  @IsString()
+  @IsOptional()
+  hostname?: string;
 }

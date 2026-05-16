@@ -20,6 +20,11 @@ export class NfcTagService {
     return this.prisma.nfc_tag.delete({ where: { id } });
   }
 
+  async existsByCode(nfc_code: string) {
+    const tag = await this.prisma.nfc_tag.findFirst({ where: { nfc_code } });
+    return { exists: !!tag };
+  }
+
   private async findOneOrFail(id: number) {
     const tag = await this.prisma.nfc_tag.findUnique({ where: { id } });
     if (!tag) throw new NotFoundException(`nfc_tag con id ${id} no encontrado`);

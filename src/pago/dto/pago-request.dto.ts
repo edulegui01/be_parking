@@ -24,4 +24,12 @@ export class PagoRequestDto {
   @IsString()
   @IsOptional()
   correo_electronico?: string;
+
+  @IsString()
+  @IsOptional()
+  ip_address?: string;
+
+  @IsString()
+  @IsOptional()
+  hostname?: string;
 }

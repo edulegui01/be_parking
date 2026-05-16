@@ -175,6 +175,7 @@ export class TicketService {
             ruc: data.ruc ?? '',
             a_nombre_de: data.a_nombre_de ?? '',
             correo_electronico: data.correo_electronico ?? '',
+            hostname: data.hostname ?? '',
           },
         );
       this.logger.log(`Respuesta generateInvoice: ${JSON.stringify(response)}`);
