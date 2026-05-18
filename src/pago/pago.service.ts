@@ -18,6 +18,10 @@ export class PagoService {
     private readonly ticketService: TicketService,
   ) {}
 
+  private normalizeIp(ip: string): string {
+    return ip.replace(/^::ffff:/, '');
+  }
+
   private async callPrintAgent(
     clientIp: string,
     invoice: TicketResponseGenerateInvoice,
@@ -43,6 +47,7 @@ export class PagoService {
     data: PagoRequestDto,
     clientIp: string,
   ): Promise<ApiResponse<TicketResponseGenerateInvoice>> {
+    clientIp = this.normalizeIp(clientIp);
     const ticket = await this.prisma.ticket.findUnique({
       where: { ticket_code: data.ticket_code },
     });
@@ -96,6 +101,7 @@ export class PagoService {
     data: PagoRequestDto,
     clientIp: string,
   ): Promise<ApiResponse<TicketResponseGenerateInvoice>> {
+    clientIp = this.normalizeIp(clientIp);
     const ticket = await this.prisma.ticket.findUnique({
       where: { ticket_code: data.ticket_code },
     });
