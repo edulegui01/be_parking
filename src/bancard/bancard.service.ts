@@ -39,9 +39,16 @@ export class BancardService {
     return map;
   }
 
+  private normalizeIp(ip?: string): string | undefined {
+    if (!ip) return undefined;
+    // Strip IPv6-mapped IPv4 prefix (e.g. "::ffff:192.168.1.1" -> "192.168.1.1")
+    return ip.replace(/^::ffff:/, '');
+  }
+
   private getPosUrl(clientIp?: string): string {
-    if (clientIp && this.posMap.has(clientIp)) {
-      return this.posMap.get(clientIp)!;
+    const ip = this.normalizeIp(clientIp);
+    if (ip && this.posMap.has(ip)) {
+      return this.posMap.get(ip)!;
     }
     return this.fallbackUrl;
   }
@@ -68,6 +75,7 @@ export class BancardService {
   }
 
   async verificarConexion(clientIp?: string): Promise<{ eco: number }> {
+    this.logger.log(`Client IP recibida: ${clientIp} | normalizada: ${this.normalizeIp(clientIp)} | POS URL: ${this.getPosUrl(clientIp)}`);
     const url = `${this.getPosUrl(clientIp)}/pos/eco`;
 
     try {
