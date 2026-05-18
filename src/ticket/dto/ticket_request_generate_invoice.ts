@@ -27,5 +27,9 @@ export class TicketRequestGenerateInvoice {
 
   @IsString()
   @IsOptional()
+  ip_address?: string;
+
+  @IsString()
+  @IsOptional()
   hostname?: string;
 }

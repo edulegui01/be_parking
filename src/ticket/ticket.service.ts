@@ -175,6 +175,7 @@ export class TicketService {
             ruc: data.ruc ?? '',
             a_nombre_de: data.a_nombre_de ?? '',
             correo_electronico: data.correo_electronico ?? '',
+            ip_address: data.ip_address ?? '',
             hostname: data.hostname ?? '',
           },
         );

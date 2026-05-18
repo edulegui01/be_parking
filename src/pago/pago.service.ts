@@ -88,6 +88,7 @@ export class PagoService {
       ruc: data.ruc,
       a_nombre_de: data.a_nombre_de,
       correo_electronico: data.correo_electronico,
+      ip_address: clientIp,
       hostname: data.hostname,
     });
 
@@ -135,6 +136,7 @@ export class PagoService {
       ruc: data.ruc,
       a_nombre_de: data.a_nombre_de,
       correo_electronico: data.correo_electronico,
+      ip_address: clientIp,
       hostname: data.hostname,
     });
 
