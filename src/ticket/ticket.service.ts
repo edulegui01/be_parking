@@ -48,7 +48,9 @@ export class TicketService {
         this.logger.log(
           `Creando ticket en BD: ${JSON.stringify({ ...data, entry_date })}`,
         );
-        await tx.ticket.create({ data: { ...data, entry_date } });
+        await tx.ticket.create({
+          data: { ticket_code: data.ticket_code, entry_date },
+        });
       } catch (error) {
         this.logger.error(
           'Error al crear ticket en base de datos',
@@ -61,6 +63,7 @@ export class TicketService {
         const payload = {
           codigo_ticket: data.ticket_code,
           fecha_ingreso: entry_date,
+          nfc: data.nfc,
         };
         this.logger.log(`Enviando a API externa: ${JSON.stringify(payload)}`);
         return await this.httpService.post<TicketResponseCreate>(
@@ -197,11 +200,14 @@ export class TicketService {
     }
   }
 
-  async exit(ticket_code: string): Promise<ApiResponse<TicketResponseExit>> {
+  async exit(
+    ticket_code: string,
+    nfc: boolean,
+  ): Promise<ApiResponse<TicketResponseExit>> {
     try {
       const response = await this.httpService.post<TicketResponseExit>(
         `${this.config.baseUrl}${TICKET_ENDPOINTS.EGRESO}`,
-        { codigo_ticket: ticket_code },
+        { codigo_ticket: ticket_code, nfc },
       );
 
       try {

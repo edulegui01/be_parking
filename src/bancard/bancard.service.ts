@@ -75,7 +75,9 @@ export class BancardService {
   }
 
   async verificarConexion(clientIp?: string): Promise<{ eco: number }> {
-    this.logger.log(`Client IP recibida: ${clientIp} | normalizada: ${this.normalizeIp(clientIp)} | POS URL: ${this.getPosUrl(clientIp)}`);
+    this.logger.log(
+      `Client IP recibida: ${clientIp} | normalizada: ${this.normalizeIp(clientIp)} | POS URL: ${this.getPosUrl(clientIp)}`,
+    );
     const url = `${this.getPosUrl(clientIp)}/pos/eco`;
 
     try {
@@ -203,7 +205,10 @@ export class BancardService {
     }
   }
 
-  async pagoQr(data: PagoQrRequestDto, clientIp?: string): Promise<VentaQrResponseDto> {
+  async pagoQr(
+    data: PagoQrRequestDto,
+    clientIp?: string,
+  ): Promise<VentaQrResponseDto> {
     const url = `${this.getPosUrl(clientIp)}/pos/venta-qr`;
     const requestJson = JSON.stringify(data);
 

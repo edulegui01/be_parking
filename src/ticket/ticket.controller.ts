@@ -8,6 +8,7 @@ import { ApiResponse } from 'src/common/api-response.type';
 import { TicketResponseGenerateInvoice } from './dto/ticket_response_generate_invoice';
 import { TicketRequestGenerateInvoice } from './dto/ticket_request_generate_invoice';
 import { TicketResponseExit } from './dto/ticket_response_exit';
+import { TicketRequestExit } from './dto/ticket_request_exit.entity';
 
 @Controller('ticket')
 export class TicketController {
@@ -44,8 +45,8 @@ export class TicketController {
 
   @Post('exit')
   async exit(
-    @Body('ticket_code') ticket_code: string,
+    @Body() data: TicketRequestExit,
   ): Promise<ApiResponse<TicketResponseExit>> {
-    return this.ticketService.exit(ticket_code);
+    return this.ticketService.exit(data.ticket_code, data.nfc);
   }
 }
