@@ -44,19 +44,21 @@ export class TicketService {
       });
       const entry_date = new Date(localStr.replace(' ', 'T') + 'Z');
 
-      try {
-        this.logger.log(
-          `Creando ticket en BD: ${JSON.stringify({ ...data, entry_date })}`,
-        );
-        await tx.ticket.create({
-          data: { ticket_code: data.ticket_code, entry_date },
-        });
-      } catch (error) {
-        this.logger.error(
-          'Error al crear ticket en base de datos',
-          (error as Error).message,
-        );
-        throw new InternalServerErrorException('Error al crear ticket');
+      if (!data.nfc) {
+        try {
+          this.logger.log(
+            `Creando ticket en BD: ${JSON.stringify({ ...data, entry_date })}`,
+          );
+          await tx.ticket.create({
+            data: { ticket_code: data.ticket_code, entry_date },
+          });
+        } catch (error) {
+          this.logger.error(
+            'Error al crear ticket en base de datos',
+            (error as Error).message,
+          );
+          throw new InternalServerErrorException('Error al crear ticket');
+        }
       }
 
       try {
