@@ -32,4 +32,12 @@ export class TicketRequestGenerateInvoice {
   @IsString()
   @IsOptional()
   hostname?: string;
+
+  @IsString()
+  @IsOptional()
+  nro_boleta?: string;
+
+  @IsString()
+  @IsOptional()
+  issuer_id?: string;
 }

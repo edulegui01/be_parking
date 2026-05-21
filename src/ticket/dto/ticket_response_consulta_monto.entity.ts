@@ -6,7 +6,10 @@ export interface TicketResponseConsultaMonto {
   descuento_porcentaje: number;
   iva_porcentaje: number;
   tarifa_calculada: number;
+  monto_iva: number;
+  monto_gravado: number;
   monto_total: number;
+  mensaje: string;
   tiempo_transcurrido: string;
   facturado: string;
   facturas: {

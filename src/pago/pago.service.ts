@@ -60,7 +60,7 @@ export class PagoService {
     }, clientIp);
 
     this.logger.log(`Confirmando pago tarjeta para ticket ${data.ticket_code}`);
-    await this.bancardService.confirmarPagoTarjeta({
+    const { nroBoleta, issuerId } = await this.bancardService.confirmarPagoTarjeta({
       bin,
       nsu,
       monto: data.monto,
@@ -90,6 +90,8 @@ export class PagoService {
       correo_electronico: data.correo_electronico,
       ip_address: clientIp,
       hostname: data.hostname,
+      nro_boleta: nroBoleta,
+      issuer_id: issuerId,
     });
 
     if (invoice.data) {
@@ -109,7 +111,7 @@ export class PagoService {
 
     const facturaNro = Date.now() % 1000000;
     this.logger.log(`Iniciando pago QR para ticket ${data.ticket_code}`);
-    await this.bancardService.pagoQr({
+    const { nroBoleta, issuerId } = await this.bancardService.pagoQr({
       facturaNro,
       monto: data.monto,
     }, clientIp);
@@ -138,6 +140,8 @@ export class PagoService {
       correo_electronico: data.correo_electronico,
       ip_address: clientIp,
       hostname: data.hostname,
+      nro_boleta: nroBoleta,
+      issuer_id: issuerId,
     });
 
     if (invoice.data) {

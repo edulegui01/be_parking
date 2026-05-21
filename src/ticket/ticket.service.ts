@@ -21,6 +21,7 @@ import { TicketRequestGenerateInvoice } from './dto/ticket_request_generate_invo
 import { TicketResponseExit } from './dto/ticket_response_exit';
 import externalApiConfig from 'src/config/external-api.config';
 import { TICKET_ENDPOINTS } from './constants/endpoints';
+import issuerMap from './constants/issuer-map.json';
 
 @Injectable()
 export class TicketService {
@@ -182,6 +183,10 @@ export class TicketService {
             correo_electronico: data.correo_electronico ?? '',
             ip_address: data.ip_address ?? '',
             hostname: data.hostname ?? '',
+            nro_boleta: data.nro_boleta ?? '',
+            forma_pago: data.issuer_id
+              ? ((issuerMap as Record<string, string>)[data.issuer_id] ?? '')
+              : '',
           },
         );
       this.logger.log(`Respuesta generateInvoice: ${JSON.stringify(response)}`);
