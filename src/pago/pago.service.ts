@@ -23,7 +23,7 @@ export class PagoService {
   }
 
   private async getNextFacturaNro(): Promise<number> {
-    const counter = await this.prisma.facturaCounter.upsert({
+    const counter = await this.prisma.factura_counter.upsert({
       where: { id: 1 },
       update: { current: { increment: 1 } },
       create: { id: 1, current: 1 },
