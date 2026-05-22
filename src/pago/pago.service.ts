@@ -22,6 +22,15 @@ export class PagoService {
     return ip.replace(/^::ffff:/, '');
   }
 
+  private async getNextFacturaNro(): Promise<number> {
+    const counter = await this.prisma.facturaCounter.upsert({
+      where: { id: 1 },
+      update: { current: { increment: 1 } },
+      create: { id: 1, current: 1 },
+    });
+    return counter.current;
+  }
+
   private async callPrintAgent(
     clientIp: string,
     invoice: TicketResponseGenerateInvoice,
@@ -52,7 +61,7 @@ export class PagoService {
       where: { ticket_code: data.ticket_code },
     });
 
-    const facturaNro = Date.now() % 1000000;
+    const facturaNro = await this.getNextFacturaNro();
     this.logger.log(`Iniciando pago tarjeta para ticket ${data.ticket_code}`);
     const { bin, nsu } = await this.bancardService.iniciarPagoTarjeta({
       facturaNro,
@@ -109,7 +118,7 @@ export class PagoService {
       where: { ticket_code: data.ticket_code },
     });
 
-    const facturaNro = Date.now() % 1000000;
+    const facturaNro = await this.getNextFacturaNro();
     this.logger.log(`Iniciando pago QR para ticket ${data.ticket_code}`);
     const { nroBoleta, issuerId } = await this.bancardService.pagoQr({
       facturaNro,

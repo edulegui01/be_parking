@@ -39,6 +39,11 @@ model nfc_tag {
     owner    String
 }
 
+model factura_counter {
+    id      Int @id @default(1)
+    current Int @default(0)
+}
+
 model bancard_log{
     id          Int      @id @default(autoincrement())
     tipo_operacion String
