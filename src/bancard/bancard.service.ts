@@ -119,8 +119,27 @@ export class BancardService {
         body: requestJson,
       });
 
-      const responseData =
-        (await response.json()) as IniciarPagoTarjetaResponseDto;
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        await this.saveLog(
+          'INICIAR_TARJETA',
+          'ERROR',
+          response.status,
+          requestJson,
+          JSON.stringify(responseData),
+          data.monto,
+        );
+        const errorResponse: BancardErrorDto = {
+          statusCode: response.status,
+          error: responseData.error || 'Error',
+          message: responseData.message || 'Error en Bancard al iniciar pago',
+        };
+        this.logger.error(
+          `Error en iniciarPagoTarjeta: ${JSON.stringify(errorResponse)}`,
+        );
+        throw new HttpException(errorResponse, response.status);
+      }
 
       await this.saveLog(
         'INICIAR_TARJETA',
@@ -132,17 +151,17 @@ export class BancardService {
       );
       this.logger.log(`Respuesta venta-ux: ${JSON.stringify(responseData)}`);
 
-      return responseData;
+      return responseData as IniciarPagoTarjetaResponseDto;
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       await this.saveLog(
         'INICIAR_TARJETA',
         'ERROR',
-        error.response?.status || 500,
+        500,
         requestJson,
-        JSON.stringify(error.response?.data),
+        (error as Error).message,
       );
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const errorResponse: BancardErrorDto = error.response?.data || {
+      const errorResponse: BancardErrorDto = {
         statusCode: 500,
         error: 'Internal Server Error',
         message: 'No se pudo establecer conexión con el POS para iniciar pago',
@@ -150,7 +169,7 @@ export class BancardService {
       this.logger.error(
         `Error en iniciarPagoTarjeta: ${JSON.stringify(errorResponse)}`,
       );
-      throw new HttpException(errorResponse, error.response?.status || 500);
+      throw new HttpException(errorResponse, 500);
     }
   }
 
@@ -170,7 +189,27 @@ export class BancardService {
         body: requestJson,
       });
 
-      const responseData = (await response.json()) as VentaTarjetaResponseDto;
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        await this.saveLog(
+          'CONFIRMAR_TARJETA',
+          'ERROR',
+          response.status,
+          requestJson,
+          JSON.stringify(responseData),
+          data.monto,
+        );
+        const errorResponse: BancardErrorDto = {
+          statusCode: response.status,
+          error: responseData.error || 'Error',
+          message: responseData.message || 'Error en Bancard al confirmar pago',
+        };
+        this.logger.error(
+          `Error en confirmarPagoTarjeta: ${JSON.stringify(errorResponse)}`,
+        );
+        throw new HttpException(errorResponse, response.status);
+      }
 
       await this.saveLog(
         'CONFIRMAR_TARJETA',
@@ -182,26 +221,25 @@ export class BancardService {
       );
       this.logger.log(`Respuesta descuento: ${JSON.stringify(responseData)}`);
 
-      return responseData;
+      return responseData as VentaTarjetaResponseDto;
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       await this.saveLog(
         'CONFIRMAR_TARJETA',
         'ERROR',
-        error.response?.status || 500,
+        500,
         requestJson,
-        JSON.stringify(error.response?.data),
+        (error as Error).message,
       );
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const errorResponse: BancardErrorDto = error.response?.data || {
+      const errorResponse: BancardErrorDto = {
         statusCode: 500,
         error: 'Internal Server Error',
-        message:
-          'No se pudo establecer conexión con el POS para confirmar pago',
+        message: 'No se pudo establecer conexión con el POS para confirmar pago',
       };
       this.logger.error(
         `Error en confirmarPagoTarjeta: ${JSON.stringify(errorResponse)}`,
       );
-      throw new HttpException(errorResponse, error.response?.status || 500);
+      throw new HttpException(errorResponse, 500);
     }
   }
 
@@ -221,7 +259,25 @@ export class BancardService {
         body: requestJson,
       });
 
-      const responseData = (await response.json()) as VentaQrResponseDto;
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        await this.saveLog(
+          'PAGO_QR',
+          'ERROR',
+          response.status,
+          requestJson,
+          JSON.stringify(responseData),
+          data.monto,
+        );
+        const errorResponse: BancardErrorDto = {
+          statusCode: response.status,
+          error: responseData.error || 'Error',
+          message: responseData.message || 'Error en Bancard al procesar pago QR',
+        };
+        this.logger.error(`Error en pagoQr: ${JSON.stringify(errorResponse)}`);
+        throw new HttpException(errorResponse, response.status);
+      }
 
       await this.saveLog(
         'PAGO_QR',
@@ -233,23 +289,23 @@ export class BancardService {
       );
       this.logger.log(`Respuesta QR exitosa: ${JSON.stringify(responseData)}`);
 
-      return responseData;
+      return responseData as VentaQrResponseDto;
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       await this.saveLog(
         'PAGO_QR',
         'ERROR',
-        error.response?.status || 500,
+        500,
         requestJson,
-        JSON.stringify(error.response?.data),
+        (error as Error).message,
       );
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const errorResponse: BancardErrorDto = error.response?.data || {
+      const errorResponse: BancardErrorDto = {
         statusCode: 500,
         error: 'Internal Server Error',
         message: 'No se pudo establecer conexión con el POS para pago QR',
       };
       this.logger.error(`Error en pagoQr: ${JSON.stringify(errorResponse)}`);
-      throw new HttpException(errorResponse, error.response?.status || 500);
+      throw new HttpException(errorResponse, 500);
     }
   }
 }
