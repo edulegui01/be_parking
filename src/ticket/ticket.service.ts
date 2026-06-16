@@ -22,6 +22,7 @@ import { TicketResponseExit } from './dto/ticket_response_exit';
 import externalApiConfig from 'src/config/external-api.config';
 import { TICKET_ENDPOINTS } from './constants/endpoints';
 import issuerMap from './constants/issuer-map.json';
+import { retryWithBackoff } from 'src/common/retry.util';
 
 @Injectable()
 export class TicketService {
@@ -38,37 +39,39 @@ export class TicketService {
   async create(
     data: TicketRequestCreate,
   ): Promise<ApiResponse<TicketResponseCreate>> {
-    return await this.prisma.$transaction(async (tx) => {
-      const now = new Date();
-      const localStr = now.toLocaleString('sv-SE', {
-        timeZone: 'America/Asuncion',
-      });
-      const entry_date = new Date(localStr.replace(' ', 'T') + 'Z');
+    const now = new Date();
+    const localStr = now.toLocaleString('sv-SE', {
+      timeZone: 'America/Asuncion',
+    });
+    const entry_date = new Date(localStr.replace(' ', 'T') + 'Z');
 
-      if (!data.nfc) {
-        try {
-          this.logger.log(
-            `Creando ticket en BD: ${JSON.stringify({ ...data, entry_date })}`,
-          );
-          await tx.ticket.create({
-            data: { ticket_code: data.ticket_code, entry_date },
-          });
-        } catch (error) {
-          this.logger.error(
-            'Error al crear ticket en base de datos',
-            (error as Error).message,
-          );
-          throw new InternalServerErrorException('Error al crear ticket');
-        }
-      }
-
+    if (!data.nfc) {
       try {
-        const payload = {
-          codigo_ticket: data.ticket_code,
-          fecha_ingreso: entry_date,
-          nfc: data.nfc,
-        };
-        this.logger.log(`Enviando a API externa: ${JSON.stringify(payload)}`);
+        this.logger.log(
+          `Creando ticket en BD: ${JSON.stringify({ ...data, entry_date })}`,
+        );
+        await this.prisma.ticket.create({
+          data: { ticket_code: data.ticket_code, entry_date },
+        });
+      } catch (error) {
+        this.logger.error(
+          'Error al crear ticket en base de datos',
+          (error as Error).message,
+        );
+      }
+    }
+
+    const payload = {
+      codigo_ticket: data.ticket_code,
+      fecha_ingreso: entry_date,
+      nfc: data.nfc,
+    };
+
+    this.logger.log(`Enviando a API externa: ${JSON.stringify(payload)}`);
+
+    if (data.nfc) {
+      // NFC requiere respuesta inmediata: sin reintentos ni cola de pendientes
+      try {
         return await this.httpService.post<TicketResponseCreate>(
           `${this.config.baseUrl}${TICKET_ENDPOINTS.REGISTRAR_TICKET}`,
           payload,
@@ -76,17 +79,57 @@ export class TicketService {
       } catch (error) {
         if (error instanceof ExternalApiException) {
           this.logger.warn(
-            'API externa rechazó el registro del ticket',
+            'API externa rechazó el registro NFC',
             error.getResponse(),
           );
-          throw error;
+        } else {
+          this.logger.error(
+            'Error al registrar ticket NFC en API externa',
+            (error as Error).message,
+          );
         }
-        this.logger.error(
-          'Error al registrar ticket en API externa',
-          (error as Error).message,
+        throw error;
+      }
+    }
+
+    try {
+      return await retryWithBackoff(
+        () =>
+          this.httpService.post<TicketResponseCreate>(
+            `${this.config.baseUrl}${TICKET_ENDPOINTS.REGISTRAR_TICKET}`,
+            payload,
+          ),
+        {
+          retries: this.config.retryAttempts,
+          baseDelayMs: this.config.retryDelayMs,
+          shouldRetry: (error) => !(error instanceof ExternalApiException),
+        },
+      );
+    } catch (error) {
+      if (error instanceof ExternalApiException) {
+        this.logger.warn(
+          'API externa rechazó el registro del ticket',
+          error.getResponse(),
         );
-        throw new InternalServerErrorException(
-          'Error al registrar ticket en sistema externo',
+        throw error;
+      }
+
+      this.logger.error(
+        'No se pudo registrar el ticket en API externa tras reintentos',
+        (error as Error).message,
+      );
+      try {
+        await this.prisma.pending_ticket_request.create({
+          data: {
+            ticket_code: data.ticket_code,
+            payload: JSON.stringify(payload),
+            last_error: (error as Error).message,
+          },
+        });
+      } catch (dbError) {
+        this.logger.error(
+          'No se pudo guardar el registro pendiente',
+          (dbError as Error).message,
         );
       }
 
@@ -95,7 +138,8 @@ export class TicketService {
         data: {
           codigo_ticket: data.ticket_code,
           fecha_ingreso: entry_date.toISOString(),
-          message: 'Ticket registrado correctamente',
+          message:
+            'Ticket registrado localmente. Pendiente de sincronización con el sistema externo.',
         },
         error: null,
         meta: {
@@ -104,7 +148,7 @@ export class TicketService {
           version: process.env.npm_package_version ?? '1.0.0',
         },
       };
-    });
+    }
   }
 
   async updateExitDate(

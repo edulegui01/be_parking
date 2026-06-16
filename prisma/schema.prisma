@@ -54,3 +54,16 @@ model bancard_log{
     monto          Decimal? @db.Decimal(12, 3)
     fecha          DateTime @default(now())
 }
+
+model pending_ticket_request {
+    id          Int      @id @default(autoincrement())
+    ticket_code String
+    payload     String
+    status      String   @default("pending")
+    attempts    Int      @default(0)
+    last_error  String?
+    created_at  DateTime @default(now())
+    updated_at  DateTime @updatedAt
+
+    @@index([status])
+}
